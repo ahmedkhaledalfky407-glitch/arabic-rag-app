@@ -2,13 +2,7 @@
 .streamlit/secrets.toml
 __pycache__/
 *.pyc
-chroma_db/
-data/01_documents.json
-data/02_preprocessed.json
-data/03_chunks.json
-data/04_embeddings.npy
 logs/
 .venv/
 venv/
 venv311/
-.env
