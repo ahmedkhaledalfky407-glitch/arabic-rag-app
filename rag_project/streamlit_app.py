@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-واجهة Streamlit احترافية ومحسنة لمساعد RAG العربي.
-واجهة مستخدم مخصصة بتصميم داكن RTL مع خط Cairo.
+واجهة Streamlit احترافية بدون شريط جانبي.
+تصميم داكن RTL مع خط Cairo، واجهة مستخدم واحدة متكاملة.
 """
 
 from __future__ import annotations
@@ -14,30 +14,13 @@ from typing import Any
 
 import streamlit as st
 
-from config import (
-    CHROMA_DIR,
-    DATA_DIR,
-    DATA_FILE_CHUNKS,
-    DATA_FILE_DOCUMENTS,
-    DOCUMENTS_DIR,
-    LLM_MODEL,
-    MIN_SIMILARITY,
-    TOP_K,
-    get_openrouter_api_key,
-)
-from deque_interface import DequeInterface
-from logger import logger
-from memory import ConversationMemory
-from security import SecurityError, sanitize_user_query
-from utils import read_json_file, read_text_file
-
 # ── 1. تهيئة الصفحة ──────────────────────────────────────────────────────────
 
 st.set_page_config(
     page_title="مساعد RAG عربي ذكي",
     page_icon="🧠",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 # ── 2. تنسيقات CSS المخصصة ───────────────────────────────────────────────────
@@ -74,19 +57,13 @@ st.markdown(
         color: var(--text-primary) !important;
     }
 
-    /* تحسين عام للعناصر */
     .stApp {
         background: linear-gradient(135deg, #0b1120 0%, #111827 50%, #0b1120 100%) !important;
     }
 
-    /* Sidebar styling */
+    /* إخفاء الشريط الجانبي تماماً */
     [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
-        border-left: 1px solid var(--border) !important;
-    }
-
-    [data-testid="stSidebar"] > div:first-child {
-        background: transparent !important;
+        display: none !important;
     }
 
     /* الأزرار */
@@ -210,6 +187,29 @@ st.markdown(
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+
+    /* Controls bar */
+    .controls-bar {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+    }
+
+    .controls-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        align-items: end;
+    }
+
+    .control-item label {
+        display: block;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -294,35 +294,47 @@ def rebuild_knowledge_base() -> int:
     return len(documents)
 
 
-# ── 6. القائمة الجانبية ──────────────────────────────────────────────────────
+# ── 6. الشريط العلوي للتحكم ──────────────────────────────────────────────────
 
-with st.sidebar:
-    st.markdown(
-        "<h2 style='text-align:center; margin-bottom:20px;'>⚙️ إعدادات النظام</h2>",
-        unsafe_allow_html=True,
-    )
+st.markdown(
+    """
+    <div class="controls-bar">
+        <div class="controls-grid">
+            <div class="control-item">
+                <label>🔑 مفتاح OpenRouter API</label>
+            </div>
+            <div class="control-item">
+                <label>📁 رفع ملفات TXT</label>
+            </div>
+            <div class="control-item">
+                <label>⚙️ الإعدادات</label>
+            </div>
+        </div>
+    </div>
+""",
+    unsafe_allow_html=True,
+)
 
-    # مفتاح API
-    st.markdown("### 🔑 مفتاح OpenRouter API")
+col1, col2, col3 = st.columns([2, 2, 3])
+
+with col1:
     active_api_key = get_openrouter_api_key(st.session_state.user_api_key)
     input_key = st.text_input(
-        "مفتاح API الخاص بك:",
+        "مفتاح API",
         value=active_api_key,
         type="password",
-        help="يمكنك وضع المفتاح هنا أو في ملف .env أو Streamlit Secrets",
+        help="مفتاح OpenRouter API",
+        label_visibility="collapsed",
     )
     if input_key and input_key.strip() != active_api_key:
         st.session_state.user_api_key = input_key.strip()
         os.environ["OPENROUTER_API_KEY"] = input_key.strip()
         active_api_key = input_key.strip()
-        st.success("تم تحديث مفتاح API بنجاح!")
+        st.success("تم تحديث مفتاح API")
 
-    st.divider()
-
-    # رفع الملفات
-    st.markdown("### 📁 رفع ملفات TXT جديدة")
-    uploaded = st.file_uploader("ارفع ملفات نصية", type=["txt"], accept_multiple_files=True)
-    if st.button("💾 حفظ الملفات المرفوعة", use_container_width=True):
+with col2:
+    uploaded = st.file_uploader("ارفع ملفات TXT", type=["txt"], accept_multiple_files=True, label_visibility="collapsed")
+    if st.button("💾 حفظ الملفات", use_container_width=True):
         if uploaded:
             DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
             saved = []
@@ -330,65 +342,31 @@ with st.sidebar:
                 target = DOCUMENTS_DIR / f.name
                 target.write_bytes(f.getvalue())
                 saved.append(f.name)
-            st.success(f"تم حفظ {len(saved)} ملفًا بنجاح")
+            st.success(f"تم حفظ {len(saved)} ملفًا")
         else:
-            st.info("اختر ملفًا واحدًا أو أكثر لرفعه")
+            st.info("اختر ملفًا لرفعه")
 
-    # إعادة البناء
-    if st.button("🔄 إعادة بناء قاعدة المعرفة", use_container_width=True, type="primary"):
-        try:
-            with st.spinner("جارٍ معالجة المستندات وتقسيمها وبناء المتجهات..."):
-                count = rebuild_knowledge_base()
-                st.session_state.db_built = True
-            st.success(f"تم البناء بنجاح مع {count} مستند!")
-        except Exception as exc:
-            st.error(f"فشل في بناء قاعدة المعرفة: {exc}")
+with col3:
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("🔄 إعادة بناء", use_container_width=True, type="primary"):
+            try:
+                with st.spinner("جارٍ البناء..."):
+                    count = rebuild_knowledge_base()
+                    st.session_state.db_built = True
+                st.success(f"تم البناء: {count} مستند")
+            except Exception as exc:
+                st.error(f"فشل البناء: {exc}")
+    with c2:
+        if st.button("🗑️ مسح المحادثة", use_container_width=True):
+            st.session_state.memory.clear()
+            st.session_state.messages.clear()
+            st.success("تم مسح المحادثة")
+    with c3:
+        top_k = st.slider("Top K", 1, 10, 5, label_visibility="collapsed")
+        sim_threshold = st.slider("التشابه", 0.0, 1.0, 0.40, 0.05, label_visibility="collapsed")
 
-    # مسح المحادثة
-    if st.button("🗑️ مسح المحادثة", use_container_width=True):
-        st.session_state.memory.clear()
-        st.session_state.messages.clear()
-        st.success("تم مسح المحادثة بنجاح")
-
-    st.divider()
-
-    # الإعدادات
-    st.markdown("### ⚙️ الإعدادات")
-    top_k = st.slider("عدد النتائج المسترجعة (Top K)", 1, 10, 5)
-    sim_threshold = st.slider("حد أدنى للتشابه", 0.0, 1.0, 0.40, 0.05)
-
-    models_list = [
-        "openrouter/free",
-        "google/gemini-2.5-flash",
-        "openai/gpt-4o-mini",
-        "meta-llama/llama-3.3-70b-instruct",
-        "deepseek/deepseek-chat",
-    ]
-    if st.session_state.selected_model not in models_list:
-        models_list.insert(0, st.session_state.selected_model)
-
-    st.session_state.selected_model = st.selectbox(
-        "اختر النموذج",
-        models_list,
-        index=models_list.index(st.session_state.selected_model)
-        if st.session_state.selected_model in models_list
-        else 0,
-    )
-    os.environ["OPENROUTER_MODEL"] = st.session_state.selected_model
-
-    st.divider()
-
-    # الإحصائيات
-    st.markdown("### 📊 إحصائيات قاعدة المعرفة")
-    dc, cc = get_stats()
-    st.metric("المستندات المعالجة", dc)
-    st.metric("القطع النصية (Chunks)", cc)
-
-    if st.session_state.db_built:
-        st.markdown('<span class="badge badge-success">🟢 قاعدة البيانات جاهزة</span>', unsafe_allow_html=True)
-    else:
-        st.markdown('<span class="badge badge-error">🔴 قاعدة البيانات غير مبنية</span>', unsafe_allow_html=True)
-
+st.divider()
 
 # ── 7. المحتوى الرئيسي ───────────────────────────────────────────────────────
 
@@ -461,9 +439,9 @@ prompt = st.chat_input("اكتب سؤالك هنا...")
 
 if prompt:
     if not st.session_state.db_built:
-        st.error("❌ لا يمكنك طرح الأسئلة قبل بناء قاعدة المعرفة. اضغط على 'إعادة بناء قاعدة المعرفة' في القائمة الجانبية أولاً.")
+        st.error("❌ لا يمكنك طرح الأسئلة قبل بناء قاعدة المعرفة. اضغط على 'إعادة بناء قاعدة المعرفة' في القائمة العلوية أولاً.")
     elif not active_api_key:
-        st.error("❌ يرجى توفير مفتاح OpenRouter API في القائمة الجانبية أولاً.")
+        st.error("❌ يرجى توفير مفتاح OpenRouter API في القائمة العلوية أولاً.")
     else:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
