@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-واجهة Streamlit احترافية بدون شريط جانبي.
-تصميم داكن RTL مع خط Cairo، واجهة مستخدم واحدة متكاملة.
+واجهة Streamlit احترافية - تصميم داكن RTL مع خط Cairo.
 """
 
 from __future__ import annotations
@@ -31,8 +30,8 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
 
     :root {
-        --bg-primary: #0b1120;
-        --bg-secondary: #111827;
+        --bg-primary: #070b14;
+        --bg-secondary: #0f172a;
         --bg-card: #1e293b;
         --bg-card-hover: #273549;
         --border: #334155;
@@ -42,8 +41,6 @@ st.markdown(
         --text-muted: #64748b;
         --accent: #3b82f6;
         --accent-glow: rgba(59, 130, 246, 0.25);
-        --purple: #8b5cf6;
-        --pink: #ec4899;
         --success: #22c55e;
         --warning: #ef4444;
         --warning-bg: rgba(239, 68, 68, 0.12);
@@ -58,12 +55,12 @@ st.markdown(
 
     body {
         font-family: 'Cairo', sans-serif !important;
-        background: linear-gradient(135deg, #0b1120 0%, #111827 50%, #0b1120 100%) !important;
+        background: var(--bg-primary) !important;
         color: var(--text-primary) !important;
     }
 
     .stApp {
-        background: linear-gradient(135deg, #0b1120 0%, #111827 50%, #0b1120 100%) !important;
+        background: var(--bg-primary) !important;
     }
 
     [data-testid="stSidebar"] {
@@ -80,7 +77,7 @@ st.markdown(
     }
 
     .stButton > button[kind="primary"] {
-        background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+        background: linear-gradient(135deg, #3b82f6, #7c3aed) !important;
         color: white !important;
     }
 
@@ -90,7 +87,7 @@ st.markdown(
     }
 
     .stButton > button[kind="secondary"] {
-        background: #1e293b !important;
+        background: var(--bg-card) !important;
         color: var(--text-primary) !important;
         border: 1px solid var(--border) !important;
     }
@@ -99,7 +96,7 @@ st.markdown(
     .stSelectbox > div > div > select,
     .stSlider > div > div > div > input[type="range"] {
         font-family: 'Cairo', sans-serif !important;
-        background: #1e293b !important;
+        background: var(--bg-card) !important;
         border: 1px solid var(--border) !important;
         border-radius: 12px !important;
         color: var(--text-primary) !important;
@@ -120,50 +117,8 @@ st.markdown(
         font-weight: 800;
     }
 
-    .chat-message {
-        padding: 16px 20px;
-        border-radius: 16px;
-        margin-bottom: 12px;
-        max-width: 85%;
-        line-height: 1.7;
-    }
-
-    .chat-user {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-        border: 1px solid rgba(59, 130, 246, 0.3);
-        margin-right: auto;
-        text-align: right;
-    }
-
-    .chat-assistant {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid var(--border);
-        margin-left: auto;
-        text-align: right;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
-    .badge-success {
-        background: rgba(34, 197, 94, 0.15);
-        color: #4ade80;
-        border: 1px solid rgba(34, 197, 94, 0.3);
-    }
-
-    .badge-error {
-        background: rgba(239, 68, 68, 0.15);
-        color: #f87171;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-
     .stFileUploader {
-        background: #1e293b !important;
+        background: var(--bg-card) !important;
         border: 1px solid var(--border) !important;
         border-radius: 12px !important;
     }
@@ -183,6 +138,24 @@ st.markdown(
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
+
+    .chat-message {
+        padding: 16px 20px;
+        border-radius: 16px;
+        margin-bottom: 12px;
+        max-width: 85%;
+        line-height: 1.7;
+    }
+
+    .chat-user {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+        border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .chat-assistant {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid var(--border);
+    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -225,38 +198,49 @@ if "messages" not in st.session_state:
 if "selected_model" not in st.session_state:
     st.session_state.selected_model = os.getenv("OPENROUTER_MODEL", "openrouter/free")
 if "db_built" not in st.session_state:
-    st.session_state.db_built = bool(CHROMA_DIR.exists() and any(CHROMA_DIR.iterdir()))
+    st.session_state.db_built = bool(
+        Path("chroma_db").exists() and any(Path("chroma_db").iterdir())
+    )
 if "user_api_key" not in st.session_state:
-    st.session_state.user_api_key = get_openrouter_api_key()
-
+    try:
+        from config import get_openrouter_api_key
+        st.session_state.user_api_key = get_openrouter_api_key()
+    except Exception:
+        st.session_state.user_api_key = ""
 
 # ── 5. الدوال المساعدة ───────────────────────────────────────────────────────
 
 @st.cache_data(ttl=30)
 def get_documents_list() -> list[Path]:
-    paths = {p for p in DOCUMENTS_DIR.glob("*.txt")}
-    paths.update(p for p in DATA_DIR.glob("*.txt"))
+    documents_dir = Path("documents")
+    data_dir = Path("data")
+    paths = {p for p in documents_dir.glob("*.txt")}
+    paths.update(p for p in data_dir.glob("*.txt"))
     return sorted(paths)
 
 
 def get_stats() -> tuple[int, int]:
     doc_count = 0
     chunk_count = 0
-    if DATA_FILE_DOCUMENTS.exists():
+    data_file_documents = Path("data") / "01_documents.json"
+    data_file_chunks = Path("data") / "03_chunks.json"
+    if data_file_documents.exists():
         try:
-            doc_count = len(read_json_file(DATA_FILE_DOCUMENTS))
+            import json
+            doc_count = len(json.loads(data_file_documents.read_text(encoding="utf-8")))
         except Exception:
             doc_count = 0
-    if DATA_FILE_CHUNKS.exists():
+    if data_file_chunks.exists():
         try:
-            chunk_count = len(read_json_file(DATA_FILE_CHUNKS))
+            import json
+            chunk_count = len(json.loads(data_file_chunks.read_text(encoding="utf-8")))
         except Exception:
             chunk_count = 0
     return doc_count, chunk_count
 
 
 def rebuild_knowledge_base() -> int:
-    documents = document_module.load_documents_from_directory(DOCUMENTS_DIR)
+    documents = document_module.load_documents_from_directory(Path("documents"))
     if not documents:
         raise ValueError("لم يتم العثور على مستندات نصية صالحة للمعالجة.")
     document_module.save_documents(documents)
@@ -267,109 +251,18 @@ def rebuild_knowledge_base() -> int:
     return len(documents)
 
 
-# ── 6. القائمة العلوية للتحكم ──────────────────────────────────────────────────
-
-st.markdown(
-    """
-    <div style="
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px 20px;
-        margin-bottom: 20px;
-    ">
-        <div style="
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            align-items: end;
-        ">
-            <div>
-                <label style="display:block; font-size:0.88rem; color:var(--text-secondary); margin-bottom:8px;">
-                    🔑 مفتاح OpenRouter API
-                </label>
-            </div>
-            <div>
-                <label style="display:block; font-size:0.88rem; color:var(--text-secondary); margin-bottom:8px;">
-                    📁 رفع ملفات TXT
-                </label>
-            </div>
-            <div>
-                <label style="display:block; font-size:0.88rem; color:var(--text-secondary); margin-bottom:8px;">
-                    ⚙️ الإعدادات
-                </label>
-            </div>
-        </div>
-    </div>
-""",
-    unsafe_allow_html=True,
-)
-
-col1, col2, col3 = st.columns([2, 2, 3])
-
-with col1:
-    active_api_key = get_openrouter_api_key(st.session_state.user_api_key)
-    input_key = st.text_input(
-        "مفتاح API",
-        value=active_api_key,
-        type="password",
-        help="مفتاح OpenRouter API",
-        label_visibility="collapsed",
-    )
-    if input_key and input_key.strip() != active_api_key:
-        st.session_state.user_api_key = input_key.strip()
-        os.environ["OPENROUTER_API_KEY"] = input_key.strip()
-        active_api_key = input_key.strip()
-        st.success("تم تحديث مفتاح API")
-
-with col2:
-    uploaded = st.file_uploader("ارفع ملفات TXT", type=["txt"], accept_multiple_files=True, label_visibility="collapsed")
-    if st.button("💾 حفظ الملفات", use_container_width=True):
-        if uploaded:
-            DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
-            saved = []
-            for f in uploaded:
-                target = DOCUMENTS_DIR / f.name
-                target.write_bytes(f.getvalue())
-                saved.append(f.name)
-            st.success(f"تم حفظ {len(saved)} ملفًا")
-        else:
-            st.info("اختر ملفًا لرفعه")
-
-with col3:
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        if st.button("🔄 إعادة بناء", use_container_width=True, type="primary"):
-            try:
-                with st.spinner("جارٍ البناء..."):
-                    count = rebuild_knowledge_base()
-                    st.session_state.db_built = True
-                st.success(f"تم البناء: {count} مستند")
-            except Exception as exc:
-                st.error(f"فشل البناء: {exc}")
-    with c2:
-        if st.button("🗑️ مسح المحادثة", use_container_width=True):
-            st.session_state.memory = None
-            st.session_state.messages.clear()
-            st.success("تم مسح المحادثة")
-    with c3:
-        top_k = st.slider("Top K", 1, 10, 5, label_visibility="collapsed")
-        sim_threshold = st.slider("التشابه", 0.0, 1.0, 0.40, 0.05, label_visibility="collapsed")
-
-st.divider()
-
-# ── 7. المحتوى الرئيسي ───────────────────────────────────────────────────────
+# ── 6. واجهة المستخدم ────────────────────────────────────────────────────────
 
 # Header
 st.markdown(
     """
-    <div style="text-align:center; margin-bottom:32px;">
-        <h1 style="font-size:2.6rem; font-weight:800; margin-bottom:10px;">
+    <div style="text-align:center; margin-bottom:28px;">
+        <h1 style="font-size:2.4rem; font-weight:800; margin-bottom:10px;">
             <span class="gradient-text">مساعد RAG عربي ذكي</span>
             <span style="font-size:2rem;">🧠</span>
         </h1>
         <p style="color:#94a3b8; font-size:1.05rem; max-width:600px; margin:0 auto; line-height:1.6;">
-            اسأل سؤالك عن المستندات المخزنة وستحصل على إجابة دقيقة من قاعدة المعرفة مع ذكر المصادر والقطع النصية المسترجعة
+            اسأل سؤالك عن المستندات المخزنة وستحصل على إجابة دقيقة من قاعدة المعرفة مع ذكر المصادر
         </p>
     </div>
 """,
@@ -385,7 +278,7 @@ if not st.session_state.db_built:
                 <span style="font-size:1.4rem;">ℹ️</span>
                 <div>
                     <strong>قاعدة البيانات فارغة أو لم يتم بناؤها بعد.</strong><br>
-                    يرجى رفع ملفات نصية ثم الضغط على «إعادة بناء قاعدة المعرفة» للبدء.
+                    يرجى الضغط على «إعادة بناء قاعدة المعرفة» للبدء.
                 </div>
             </div>
         </div>
@@ -394,12 +287,12 @@ if not st.session_state.db_built:
     )
 
 # عرض المستندات
-with st.expander("📁 المستندات النصية المتاحة في قاعدة المعرفة", expanded=False):
+with st.expander("📁 المستندات النصية المتاحة", expanded=False):
     knowledge_files = get_documents_list()
     if knowledge_files:
         for doc_path in knowledge_files:
             try:
-                content = read_text_file(doc_path)
+                content = doc_path.read_text(encoding="utf-8")
                 st.markdown(f"**📄 {doc_path.name}**")
                 st.code(content[:500] + ("..." if len(content) > 500 else ""), language="text")
             except Exception as exc:
@@ -407,7 +300,7 @@ with st.expander("📁 المستندات النصية المتاحة في قا�
 
 st.divider()
 
-# ── 8. عرض سجل المحادثة ──────────────────────────────────────────────────────
+# ── 7. سجل المحادثة ──────────────────────────────────────────────────────────
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -423,15 +316,15 @@ for message in st.session_state.messages:
         if message.get("meta_info"):
             st.caption(message["meta_info"])
 
-# ── 9. إدخال السؤال ──────────────────────────────────────────────────────────
+# ── 8. إدخال السؤال ──────────────────────────────────────────────────────────
 
 prompt = st.chat_input("اكتب سؤالك هنا...")
 
 if prompt:
     if not st.session_state.db_built:
-        st.error("❌ لا يمكنك طرح الأسئلة قبل بناء قاعدة المعرفة. اضغط على 'إعادة بناء قاعدة المعرفة' في القائمة العلوية أولاً.")
-    elif not active_api_key:
-        st.error("❌ يرجى توفير مفتاح OpenRouter API في القائمة العلوية أولاً.")
+        st.error("❌ لا يمكنك طرح الأسئلة قبل بناء قاعدة المعرفة. اضغط على 'إعادة بناء قاعدة المعرفة' أولاً.")
+    elif not st.session_state.user_api_key:
+        st.error("❌ يرجى توفير مفتاح OpenRouter API أولاً.")
     else:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -440,19 +333,27 @@ if prompt:
         with st.chat_message("assistant"):
             with st.spinner("جارٍ البحث في المستندات وتوليد الإجابة..."):
                 try:
-                    sanitized_query = prompt.replace("<", "").replace(">", "").replace("&", "")
+                    from memory import ConversationMemory
+                    from security import sanitize_user_query
+
+                    sanitized_query = sanitize_user_query(prompt)
                     start_time = time.time()
 
-                    contexts = retrieve_context(sanitized_query, k=top_k, min_similarity=sim_threshold)
+                    contexts = retrieve_context(sanitized_query, k=5, min_similarity=0.40)
 
                     memory = st.session_state.memory
                     if memory is None:
-                        from memory import ConversationMemory
                         memory = ConversationMemory()
                         st.session_state.memory = memory
                     memory.add_turn("user", sanitized_query)
 
-                    result = ask(sanitized_query, contexts, memory, api_key=active_api_key)
+                    result = ask(
+                        sanitized_query,
+                        contexts,
+                        memory,
+                        api_key=st.session_state.user_api_key,
+                        model=st.session_state.selected_model,
+                    )
                     response_text = result.get("answer", "تعذر توليد إجابة.")
                     sources = result.get("sources", [])
                     memory.add_turn("assistant", response_text)
@@ -484,3 +385,77 @@ if prompt:
                     st.warning(f"⚠️ تنبيه قاعدة البيانات: {exc}")
                 except Exception as exc:
                     st.error(f"⚠️ حدث خطأ أثناء معالجة السؤال: {exc}")
+
+# ── 9. شريط التحكم السفلي ────────────────────────────────────────────────────
+
+st.divider()
+
+with st.container():
+    col1, col2, col3 = st.columns([2, 2, 3])
+
+    with col1:
+        active_api_key = st.session_state.user_api_key or ""
+        input_key = st.text_input(
+            "🔑 مفتاح OpenRouter API",
+            value=active_api_key,
+            type="password",
+            label_visibility="visible",
+        )
+        if input_key and input_key.strip() != active_api_key:
+            st.session_state.user_api_key = input_key.strip()
+            os.environ["OPENROUTER_API_KEY"] = input_key.strip()
+            st.success("تم تحديث مفتاح API")
+
+    with col2:
+        uploaded = st.file_uploader("📁 رفع ملفات TXT", type=["txt"], accept_multiple_files=True, label_visibility="visible")
+        if st.button("💾 حفظ", use_container_width=True):
+            if uploaded:
+                Path("documents").mkdir(parents=True, exist_ok=True)
+                saved = []
+                for f in uploaded:
+                    target = Path("documents") / f.name
+                    target.write_bytes(f.getvalue())
+                    saved.append(f.name)
+                st.success(f"تم حفظ {len(saved)} ملفًا")
+            else:
+                st.info("اختر ملفًا لرفعه")
+
+    with col3:
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            if st.button("🔄 إعادة بناء", use_container_width=True, type="primary"):
+                try:
+                    with st.spinner("جارٍ البناء..."):
+                        count = rebuild_knowledge_base()
+                        st.session_state.db_built = True
+                    st.success(f"تم البناء: {count} مستند")
+                except Exception as exc:
+                    st.error(f"فشل البناء: {exc}")
+        with c2:
+            if st.button("🗑️ مسح المحادثة", use_container_width=True):
+                st.session_state.memory = None
+                st.session_state.messages.clear()
+                st.success("تم مسح المحادثة")
+        with c3:
+            st.session_state.selected_model = st.selectbox(
+                "اختر النموذج",
+                ["openrouter/free", "openai/gpt-4o-mini", "meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat", "google/gemini-2.5-flash"],
+                index=0,
+                label_visibility="visible",
+            )
+            os.environ["OPENROUTER_MODEL"] = st.session_state.selected_model
+
+# ── 10. الإحصائيات ───────────────────────────────────────────────────────────
+
+st.divider()
+dc, cc = get_stats()
+col1, col2 = st.columns(2)
+with col1:
+    st.metric("📊 المستندات المعالجة", dc)
+with col2:
+    st.metric("📊 القطع النصية (Chunks)", cc)
+
+if st.session_state.db_built:
+    st.markdown('<span style="background:rgba(34,197,94,0.15); color:#4ade80; border:1px solid rgba(34,197,94,0.3); padding:6px 14px; border-radius:20px; font-size:0.85rem; font-weight:600;">🟢 قاعدة البيانات جاهزة</span>', unsafe_allow_html=True)
+else:
+    st.markdown('<span style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:6px 14px; border-radius:20px; font-size:0.85rem; font-weight:600;">🔴 قاعدة البيانات غير مبنية</span>', unsafe_allow_html=True)
