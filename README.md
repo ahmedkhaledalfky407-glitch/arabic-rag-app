@@ -272,25 +272,18 @@ rag_labor_law_project/
 
 ### الخطوات:
 
-1. **ارفع الكود إلى GitHub** (تم بالفعل)
-   ```bash
-   git add .
-   git commit -m "Deploy ready"
-   git push origin main
-   ```
-
-2. **اذهب إلى Streamlit Community Cloud**
+1. **اذهب إلى Streamlit Community Cloud**
    - افتح: [https://share.streamlit.io](https://share.streamlit.io)
    - سجل الدخول باستخدام حساب GitHub
 
-3. **أنشئ تطبيق جديد**
+2. **أنشئ تطبيق جديد**
    - اضغط **"New app"**
    - اختر المستودع: `rag_labor_law_project`
    - الفرع: `main`
    - مسار الملف الرئيسي: `rag_project/app.py`
    - اضغط **"Deploy"**
 
-4. **أضف مفتاح API**
+3. **أضف مفتاح API**
    - بعد النشر، اضغط على **"Settings"** (⚙️)
    - اختر **"Secrets"**
    - أضف المفتاح التالي:
@@ -299,7 +292,7 @@ rag_labor_law_project/
      ```
    - احفظ التغييرات
 
-5. **احصل على الرابط الدائم**
+4. **احصل على الرابط الدائم**
    - بعد انتهاء النشر، ستحصل على رابط مثل:
      ```
      https://rag-labor-law-project-username.streamlit.app
@@ -313,7 +306,7 @@ rag_labor_law_project/
 | ملفات البيانات (`chroma_db/`, `data/*.json`) | مستبعدة من Git تلقائياً |
 | قاعدة المعرفة | تُبنى تلقائياً عند أول استخدام |
 | مفتاح API | يُضاف من خلال Streamlit Secrets |
-| التحديثات |当 تحديث الكود على GitHub، يتم إعادة النشر تلقائياً |
+| التحديثات | عند تحديث الكود على GitHub، يتم إعادة النشر تلقائياً |
 
 ### إعادة بناء قاعدة المعرفة بعد النشر:
 
