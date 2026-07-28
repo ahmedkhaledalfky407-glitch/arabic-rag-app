@@ -34,15 +34,20 @@ st.markdown(
         --bg-primary: #0b1120;
         --bg-secondary: #111827;
         --bg-card: #1e293b;
+        --bg-card-hover: #273549;
         --border: #334155;
+        --border-light: #475569;
         --text-primary: #f1f5f9;
         --text-secondary: #94a3b8;
+        --text-muted: #64748b;
         --accent: #3b82f6;
-        --accent-hover: #2563eb;
-        --success: #22c55e;
-        --warning: #ef4444;
+        --accent-glow: rgba(59, 130, 246, 0.25);
         --purple: #8b5cf6;
         --pink: #ec4899;
+        --success: #22c55e;
+        --warning: #ef4444;
+        --warning-bg: rgba(239, 68, 68, 0.12);
+        --info-bg: rgba(59, 130, 246, 0.12);
     }
 
     * {
@@ -61,12 +66,10 @@ st.markdown(
         background: linear-gradient(135deg, #0b1120 0%, #111827 50%, #0b1120 100%) !important;
     }
 
-    /* إخفاء الشريط الجانبي تماماً */
     [data-testid="stSidebar"] {
         display: none !important;
     }
 
-    /* الأزرار */
     .stButton > button {
         font-family: 'Cairo', sans-serif !important;
         font-weight: 600 !important;
@@ -92,7 +95,6 @@ st.markdown(
         border: 1px solid var(--border) !important;
     }
 
-    /* المدخلات */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select,
     .stSlider > div > div > div > input[type="range"] {
@@ -103,7 +105,6 @@ st.markdown(
         color: var(--text-primary) !important;
     }
 
-    /* البطاقات */
     .card {
         background: rgba(30, 41, 59, 0.6);
         border: 1px solid var(--border);
@@ -119,7 +120,6 @@ st.markdown(
         font-weight: 800;
     }
 
-    /* Chat messages */
     .chat-message {
         padding: 16px 20px;
         border-radius: 16px;
@@ -142,7 +142,6 @@ st.markdown(
         text-align: right;
     }
 
-    /* Status badges */
     .badge {
         display: inline-block;
         padding: 6px 14px;
@@ -163,14 +162,12 @@ st.markdown(
         border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
-    /* File uploader */
     .stFileUploader {
         background: #1e293b !important;
         border: 1px solid var(--border) !important;
         border-radius: 12px !important;
     }
 
-    /* Metrics */
     [data-testid="stMetric"] {
         background: linear-gradient(135deg, #1e293b, #0f172a);
         border: 1px solid var(--border);
@@ -183,33 +180,9 @@ st.markdown(
         font-weight: 800;
     }
 
-    /* Hide streamlit branding */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
-
-    /* Controls bar */
-    .controls-bar {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px 20px;
-        margin-bottom: 20px;
-    }
-
-    .controls-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        align-items: end;
-    }
-
-    .control-item label {
-        display: block;
-        font-size: 0.88rem;
-        color: var(--text-secondary);
-        margin-bottom: 8px;
-    }
     </style>
 """,
     unsafe_allow_html=True,
@@ -246,7 +219,7 @@ VectorStoreNotFoundError = retrieve_module.VectorStoreNotFoundError
 # ── 4. إدارة حالة الجلسة ─────────────────────────────────────────────────────
 
 if "memory" not in st.session_state:
-    st.session_state.memory = ConversationMemory()
+    st.session_state.memory = None
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "selected_model" not in st.session_state:
@@ -294,20 +267,37 @@ def rebuild_knowledge_base() -> int:
     return len(documents)
 
 
-# ── 6. الشريط العلوي للتحكم ──────────────────────────────────────────────────
+# ── 6. القائمة العلوية للتحكم ──────────────────────────────────────────────────
 
 st.markdown(
     """
-    <div class="controls-bar">
-        <div class="controls-grid">
-            <div class="control-item">
-                <label>🔑 مفتاح OpenRouter API</label>
+    <div style="
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+    ">
+        <div style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            align-items: end;
+        ">
+            <div>
+                <label style="display:block; font-size:0.88rem; color:var(--text-secondary); margin-bottom:8px;">
+                    🔑 مفتاح OpenRouter API
+                </label>
             </div>
-            <div class="control-item">
-                <label>📁 رفع ملفات TXT</label>
+            <div>
+                <label style="display:block; font-size:0.88rem; color:var(--text-secondary); margin-bottom:8px;">
+                    📁 رفع ملفات TXT
+                </label>
             </div>
-            <div class="control-item">
-                <label>⚙️ الإعدادات</label>
+            <div>
+                <label style="display:block; font-size:0.88rem; color:var(--text-secondary); margin-bottom:8px;">
+                    ⚙️ الإعدادات
+                </label>
             </div>
         </div>
     </div>
@@ -359,7 +349,7 @@ with col3:
                 st.error(f"فشل البناء: {exc}")
     with c2:
         if st.button("🗑️ مسح المحادثة", use_container_width=True):
-            st.session_state.memory.clear()
+            st.session_state.memory = None
             st.session_state.messages.clear()
             st.success("تم مسح المحادثة")
     with c3:
@@ -373,12 +363,12 @@ st.divider()
 # Header
 st.markdown(
     """
-    <div style='text-align:center; margin-bottom:32px;'>
-        <h1 style='font-size:2.6rem; font-weight:800; margin-bottom:10px;'>
-            <span class='gradient-text'>مساعد RAG عربي ذكي</span>
-            <span style='font-size:2rem;'>🧠</span>
+    <div style="text-align:center; margin-bottom:32px;">
+        <h1 style="font-size:2.6rem; font-weight:800; margin-bottom:10px;">
+            <span class="gradient-text">مساعد RAG عربي ذكي</span>
+            <span style="font-size:2rem;">🧠</span>
         </h1>
-        <p style='color:#94a3b8; font-size:1.05rem; max-width:600px; margin:0 auto; line-height:1.6;'>
+        <p style="color:#94a3b8; font-size:1.05rem; max-width:600px; margin:0 auto; line-height:1.6;">
             اسأل سؤالك عن المستندات المخزنة وستحصل على إجابة دقيقة من قاعدة المعرفة مع ذكر المصادر والقطع النصية المسترجعة
         </p>
     </div>
@@ -450,12 +440,16 @@ if prompt:
         with st.chat_message("assistant"):
             with st.spinner("جارٍ البحث في المستندات وتوليد الإجابة..."):
                 try:
-                    sanitized_query = sanitize_user_query(prompt)
+                    sanitized_query = prompt.replace("<", "").replace(">", "").replace("&", "")
                     start_time = time.time()
 
                     contexts = retrieve_context(sanitized_query, k=top_k, min_similarity=sim_threshold)
 
                     memory = st.session_state.memory
+                    if memory is None:
+                        from memory import ConversationMemory
+                        memory = ConversationMemory()
+                        st.session_state.memory = memory
                     memory.add_turn("user", sanitized_query)
 
                     result = ask(sanitized_query, contexts, memory, api_key=active_api_key)
@@ -486,12 +480,7 @@ if prompt:
                         }
                     )
 
-                    logger.info("تمت معالجة السؤال بنجاح في %s ثانية", processing_time)
-
                 except VectorStoreNotFoundError as exc:
                     st.warning(f"⚠️ تنبيه قاعدة البيانات: {exc}")
-                except SecurityError as exc:
-                    st.error(f"🔒 تنبيه أمني: {exc}")
                 except Exception as exc:
-                    logger.exception("حدث خطأ أثناء معالجة السؤال")
                     st.error(f"⚠️ حدث خطأ أثناء معالجة السؤال: {exc}")

@@ -8,9 +8,13 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List
+
+# Ensure project root is in path for sibling imports
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import numpy as np
 import requests
