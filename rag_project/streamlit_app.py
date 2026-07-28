@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 واجهة Streamlit احترافية ومحسنة لمساعد RAG العربي.
-تتضمن:
-1. التخزين المؤقت المتقدم (@st.cache_resource و @st.cache_data) للعمليات الثقيلة.
-2. إدارة الحالة المستمرة (st.session_state) لمنع الـ Refresh واختفاء الإجابات.
-3. معالجة الأخطاء الشاملة وتمرير التنبيهات بأسلوب أنيق للمستخدم.
-4. الربط المباشر مع جميع مكونات المشروع برمجياً بشكل نظيف.
+واجهة مستخدم مخصصة بتصميم داكن RTL مع خط Cairo.
 """
 
 from __future__ import annotations
@@ -14,21 +10,9 @@ import importlib.util
 import os
 import time
 from pathlib import Path
-from typing import Any, Tuple
+from typing import Any
 
 import streamlit as st
-
-# ── 1. تهيئة الصفحة والنمط العام ──────────────────────────────────────────
-
-try:
-    st.set_page_config(
-        page_title="مساعد RAG عربي ذكي",
-        page_icon="📚",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
-except Exception:
-    pass
 
 from config import (
     CHROMA_DIR,
@@ -47,11 +31,195 @@ from memory import ConversationMemory
 from security import SecurityError, sanitize_user_query
 from utils import read_json_file, read_text_file
 
-# ── 2. التخزين المؤقت واستيراد الوحدات (Cached Module Loader) ────────────────
+# ── 1. تهيئة الصفحة ──────────────────────────────────────────────────────────
+
+st.set_page_config(
+    page_title="مساعد RAG عربي ذكي",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# ── 2. تنسيقات CSS المخصصة ───────────────────────────────────────────────────
+
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
+    :root {
+        --bg-primary: #0b1120;
+        --bg-secondary: #111827;
+        --bg-card: #1e293b;
+        --border: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #94a3b8;
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --success: #22c55e;
+        --warning: #ef4444;
+        --purple: #8b5cf6;
+        --pink: #ec4899;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Cairo', sans-serif !important;
+        background: linear-gradient(135deg, #0b1120 0%, #111827 50%, #0b1120 100%) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* تحسين عام للعناصر */
+    .stApp {
+        background: linear-gradient(135deg, #0b1120 0%, #111827 50%, #0b1120 100%) !important;
+    }
+
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%) !important;
+        border-left: 1px solid var(--border) !important;
+    }
+
+    [data-testid="stSidebar"] > div:first-child {
+        background: transparent !important;
+    }
+
+    /* الأزرار */
+    .stButton > button {
+        font-family: 'Cairo', sans-serif !important;
+        font-weight: 600 !important;
+        border-radius: 12px !important;
+        border: none !important;
+        padding: 12px 16px !important;
+        transition: all 0.25s !important;
+    }
+
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, #3b82f6, #8b5cf6) !important;
+        color: white !important;
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+    }
+
+    .stButton > button[kind="secondary"] {
+        background: #1e293b !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border) !important;
+    }
+
+    /* المدخلات */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > select,
+    .stSlider > div > div > div > input[type="range"] {
+        font-family: 'Cairo', sans-serif !important;
+        background: #1e293b !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* البطاقات */
+    .card {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 16px;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+
+    /* Chat messages */
+    .chat-message {
+        padding: 16px 20px;
+        border-radius: 16px;
+        margin-bottom: 12px;
+        max-width: 85%;
+        line-height: 1.7;
+    }
+
+    .chat-user {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        margin-right: auto;
+        text-align: right;
+    }
+
+    .chat-assistant {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid var(--border);
+        margin-left: auto;
+        text-align: right;
+    }
+
+    /* Status badges */
+    .badge {
+        display: inline-block;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-success {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .badge-error {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    /* File uploader */
+    .stFileUploader {
+        background: #1e293b !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 12px !important;
+    }
+
+    /* Metrics */
+    [data-testid="stMetric"] {
+        background: linear-gradient(135deg, #1e293b, #0f172a);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px 10px;
+    }
+
+    [data-testid="stMetric"] > div > div > div > div {
+        color: #60a5fa !important;
+        font-weight: 800;
+    }
+
+    /* Hide streamlit branding */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    </style>
+""",
+    unsafe_allow_html=True,
+)
+
+# ── 3. استيراد الوحدات ────────────────────────────────────────────────────────
+
 
 @st.cache_resource
 def load_project_module(filename: str, module_name: str) -> Any:
-    """تحميل واستيراد وحدات المشروع مرة واحدة فقط والتخزين المؤقت لها."""
     here = Path(__file__).resolve().parent
     path = here / filename
     spec = importlib.util.spec_from_file_location(module_name, path)
@@ -75,39 +243,21 @@ retrieve_context = retrieve_module.retrieve_context
 ask = prompt_module.ask
 VectorStoreNotFoundError = retrieve_module.VectorStoreNotFoundError
 
-# ── 3. إدارة حالة الجلسة (Session State Initialization) ───────────────────
-
-@st.cache_data(ttl=60)
-def check_db_health() -> bool:
-    """التحقق من جاهزية وتوفر قاعدة البيانات المعرفية ChromaDB."""
-    try:
-        if not CHROMA_DIR.exists() or not DATA_FILE_CHUNKS.exists():
-            return False
-        chunks = read_json_file(DATA_FILE_CHUNKS)
-        return len(chunks) > 0
-    except Exception:
-        return False
-
+# ── 4. إدارة حالة الجلسة ─────────────────────────────────────────────────────
 
 if "memory" not in st.session_state:
     st.session_state.memory = ConversationMemory()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "selected_model" not in st.session_state:
-    st.session_state.selected_model = os.getenv("OPENROUTER_MODEL", LLM_MODEL)
-if "deque" not in st.session_state:
-    st.session_state.deque = DequeInterface(maxlen=20)
+    st.session_state.selected_model = os.getenv("OPENROUTER_MODEL", "openrouter/free")
 if "db_built" not in st.session_state:
-    st.session_state.db_built = check_db_health()
+    st.session_state.db_built = bool(CHROMA_DIR.exists() and any(CHROMA_DIR.iterdir()))
 if "user_api_key" not in st.session_state:
     st.session_state.user_api_key = get_openrouter_api_key()
 
-# ── 4. الدوال المساعدة وإعادة البناء ────────────────────────────────────────
 
-def ensure_directories() -> None:
-    DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
-
+# ── 5. الدوال المساعدة ───────────────────────────────────────────────────────
 
 @st.cache_data(ttl=30)
 def get_documents_list() -> list[Path]:
@@ -133,36 +283,26 @@ def get_stats() -> tuple[int, int]:
 
 
 def rebuild_knowledge_base() -> int:
-    ensure_directories()
     documents = document_module.load_documents_from_directory(DOCUMENTS_DIR)
     if not documents:
         raise ValueError("لم يتم العثور على مستندات نصية صالحة للمعالجة.")
-    document_module.save_documents(documents, DATA_FILE_DOCUMENTS)
+    document_module.save_documents(documents)
     preprocess_module.run_preprocessing()
     chunk_module.run_chunking()
     vector_module.build_embeddings()
     run_store_creation()
-    check_db_health.clear()
-    get_documents_list.clear()
     return len(documents)
 
 
-def save_uploaded_files(files: list[Any]) -> list[str]:
-    ensure_directories()
-    saved: list[str] = []
-    for f in files:
-        if f.name.lower().endswith(".txt"):
-            target = DOCUMENTS_DIR / f.name
-            target.write_bytes(f.getvalue())
-            saved.append(f.name)
-    get_documents_list.clear()
-    return saved
-
-# ── 5. القائمة الجانبية (Sidebar & Controls) ──────────────────────────────
-
-st.sidebar.title("⚙️ إعدادات النظام")
+# ── 6. القائمة الجانبية ──────────────────────────────────────────────────────
 
 with st.sidebar:
+    st.markdown(
+        "<h2 style='text-align:center; margin-bottom:20px;'>⚙️ إعدادات النظام</h2>",
+        unsafe_allow_html=True,
+    )
+
+    # مفتاح API
     st.markdown("### 🔑 مفتاح OpenRouter API")
     active_api_key = get_openrouter_api_key(st.session_state.user_api_key)
     input_key = st.text_input(
@@ -175,86 +315,120 @@ with st.sidebar:
         st.session_state.user_api_key = input_key.strip()
         os.environ["OPENROUTER_API_KEY"] = input_key.strip()
         active_api_key = input_key.strip()
-        st.success("تم تحديث واعتماد مفتاح API بنجاح!")
+        st.success("تم تحديث مفتاح API بنجاح!")
 
     st.divider()
-    st.markdown("### 📁 مجلد المستندات والبيانات")
-    st.caption(f"يقرأ التطبيق المستندات تلقائياً من المجلد:\n`{DOCUMENTS_DIR}`")
 
-    uploaded = st.file_uploader("رفع ملفات TXT جديدة", type=["txt"], accept_multiple_files=True)
-    if st.button("💾 حفظ الملفات المرفوعة"):
+    # رفع الملفات
+    st.markdown("### 📁 رفع ملفات TXT جديدة")
+    uploaded = st.file_uploader("ارفع ملفات نصية", type=["txt"], accept_multiple_files=True)
+    if st.button("💾 حفظ الملفات المرفوعة", use_container_width=True):
         if uploaded:
-            try:
-                saved = save_uploaded_files(uploaded)
-                st.success(f"تم حفظ {len(saved)} ملفًا بنجاح")
-            except Exception as exc:
-                st.error(f"حدث خطأ أثناء حفظ الملفات: {exc}")
+            DOCUMENTS_DIR.mkdir(parents=True, exist_ok=True)
+            saved = []
+            for f in uploaded:
+                target = DOCUMENTS_DIR / f.name
+                target.write_bytes(f.getvalue())
+                saved.append(f.name)
+            st.success(f"تم حفظ {len(saved)} ملفًا بنجاح")
         else:
             st.info("اختر ملفًا واحدًا أو أكثر لرفعه")
 
-    if st.button("🔨 إعادة بناء قاعدة المعرفة"):
+    # إعادة البناء
+    if st.button("🔄 إعادة بناء قاعدة المعرفة", use_container_width=True, type="primary"):
         try:
-            with st.spinner("جارٍ معالجة المستندات وتقسيمها وبناء المتجهات (ChromaDB)..."):
+            with st.spinner("جارٍ معالجة المستندات وتقسيمها وبناء المتجهات..."):
                 count = rebuild_knowledge_base()
                 st.session_state.db_built = True
             st.success(f"تم البناء بنجاح مع {count} مستند!")
         except Exception as exc:
             st.error(f"فشل في بناء قاعدة المعرفة: {exc}")
-            logger.exception("خطأ في إعادة البناء")
 
-    if st.button("🗑️ مسح المحادثة"):
+    # مسح المحادثة
+    if st.button("🗑️ مسح المحادثة", use_container_width=True):
         st.session_state.memory.clear()
         st.session_state.messages.clear()
         st.success("تم مسح المحادثة بنجاح")
 
     st.divider()
-    st.markdown("### الإعدادات")
-    top_k = st.slider("عدد النتائج المسترجعة (Top K)", 1, 10, TOP_K)
-    sim_threshold = st.slider("حد أدنى للتشابه", 0.0, 1.0, MIN_SIMILARITY)
 
-    models_list = ["openrouter/free", "google/gemini-2.5-flash", "openai/gpt-4o-mini", "meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat"]
+    # الإعدادات
+    st.markdown("### ⚙️ الإعدادات")
+    top_k = st.slider("عدد النتائج المسترجعة (Top K)", 1, 10, 5)
+    sim_threshold = st.slider("حد أدنى للتشابه", 0.0, 1.0, 0.40, 0.05)
+
+    models_list = [
+        "openrouter/free",
+        "google/gemini-2.5-flash",
+        "openai/gpt-4o-mini",
+        "meta-llama/llama-3.3-70b-instruct",
+        "deepseek/deepseek-chat",
+    ]
     if st.session_state.selected_model not in models_list:
         models_list.insert(0, st.session_state.selected_model)
 
     st.session_state.selected_model = st.selectbox(
         "اختر النموذج",
         models_list,
-        index=models_list.index(st.session_state.selected_model) if st.session_state.selected_model in models_list else 0,
+        index=models_list.index(st.session_state.selected_model)
+        if st.session_state.selected_model in models_list
+        else 0,
     )
     os.environ["OPENROUTER_MODEL"] = st.session_state.selected_model
 
     st.divider()
+
+    # الإحصائيات
     st.markdown("### 📊 إحصائيات قاعدة المعرفة")
     dc, cc = get_stats()
     st.metric("المستندات المعالجة", dc)
     st.metric("القطع النصية (Chunks)", cc)
 
     if st.session_state.db_built:
-        st.caption("🟢 قاعدة البيانات جاهزة ومستقرة")
+        st.markdown('<span class="badge badge-success">🟢 قاعدة البيانات جاهزة</span>', unsafe_allow_html=True)
     else:
-        st.caption("🔴 قاعدة البيانات غير مبنية بعد")
+        st.markdown('<span class="badge badge-error">🔴 قاعدة البيانات غير مبنية</span>', unsafe_allow_html=True)
 
-# ── 6. الواجهة الرئيسية (Main Header) ─────────────────────────────────────
 
+# ── 7. المحتوى الرئيسي ───────────────────────────────────────────────────────
+
+# Header
 st.markdown(
-    "<div dir='rtl' style='text-align:right'>"
-    "<h1>📚 مساعد RAG عربي ذكي</h1>"
-    "<p>اسأل سؤالك عن المستندات المخزنة وستحصل على إجابة دقيقة من قاعدة المعرفة مع ذكر المصادر والقطع النصية المسترجعة.</p>"
-    "</div>",
+    """
+    <div style='text-align:center; margin-bottom:32px;'>
+        <h1 style='font-size:2.6rem; font-weight:800; margin-bottom:10px;'>
+            <span class='gradient-text'>مساعد RAG عربي ذكي</span>
+            <span style='font-size:2rem;'>🧠</span>
+        </h1>
+        <p style='color:#94a3b8; font-size:1.05rem; max-width:600px; margin:0 auto; line-height:1.6;'>
+            اسأل سؤالك عن المستندات المخزنة وستحصل على إجابة دقيقة من قاعدة المعرفة مع ذكر المصادر والقطع النصية المسترجعة
+        </p>
+    </div>
+""",
     unsafe_allow_html=True,
 )
 
-if not active_api_key:
-    st.warning("⚠️ لم يتم العثور على مفتاح OpenRouter API. يرجى إضافته في Streamlit Secrets أو في القائمة الجانبية.")
-
+# حالة قاعدة البيانات
 if not st.session_state.db_built:
-    st.info("ℹ️ قاعدة البيانات فارغة أو لم يتم بناؤها بعد. يرجى رفع ملفات نصية ثم الضغط على **'إعادة بناء قاعدة المعرفة'** للبدء.")
+    st.markdown(
+        """
+        <div class="card" style="border: 1px solid #3b82f6; background: linear-gradient(135deg, rgba(30, 58, 95, 0.7), rgba(30, 41, 59, 0.7));">
+            <div style="display:flex; align-items:flex-start; gap:14px;">
+                <span style="font-size:1.4rem;">ℹ️</span>
+                <div>
+                    <strong>قاعدة البيانات فارغة أو لم يتم بناؤها بعد.</strong><br>
+                    يرجى رفع ملفات نصية ثم الضغط على «إعادة بناء قاعدة المعرفة» للبدء.
+                </div>
+            </div>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
 
-# ── 7. عرض المستندات المتاحة (Knowledge Base Viewer) ──────────────────────
-
-knowledge_files = get_documents_list()
-if knowledge_files:
-    with st.expander("📁 المستندات النصية المتاحة في قاعدة المعرفة", expanded=False):
+# عرض المستندات
+with st.expander("📁 المستندات النصية المتاحة في قاعدة المعرفة", expanded=False):
+    knowledge_files = get_documents_list()
+    if knowledge_files:
         for doc_path in knowledge_files:
             try:
                 content = read_text_file(doc_path)
@@ -265,7 +439,7 @@ if knowledge_files:
 
 st.divider()
 
-# ── 8. عرض سجل المحادثة السابق (Persisted Chat Render) ───────────────────
+# ── 8. عرض سجل المحادثة ──────────────────────────────────────────────────────
 
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
@@ -281,7 +455,7 @@ for message in st.session_state.messages:
         if message.get("meta_info"):
             st.caption(message["meta_info"])
 
-# ── 9. إدخال وتجميع الاستعلام (Chat Input & Engine) ────────────────────────
+# ── 9. إدخال السؤال ──────────────────────────────────────────────────────────
 
 prompt = st.chat_input("اكتب سؤالك هنا...")
 
@@ -289,7 +463,7 @@ if prompt:
     if not st.session_state.db_built:
         st.error("❌ لا يمكنك طرح الأسئلة قبل بناء قاعدة المعرفة. اضغط على 'إعادة بناء قاعدة المعرفة' في القائمة الجانبية أولاً.")
     elif not active_api_key:
-        st.error("❌ يرجى توفير مفتاح OpenRouter API في القائمة الجانبية أو Streamlit Secrets أولاً.")
+        st.error("❌ يرجى توفير مفتاح OpenRouter API في القائمة الجانبية أولاً.")
     else:
         st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
@@ -309,7 +483,6 @@ if prompt:
                     result = ask(sanitized_query, contexts, memory, api_key=active_api_key)
                     response_text = result.get("answer", "تعذر توليد إجابة.")
                     sources = result.get("sources", [])
-                    model_used = result.get("model_used", "")
                     memory.add_turn("assistant", response_text)
 
                     processing_time = round(time.time() - start_time, 3)
@@ -326,12 +499,14 @@ if prompt:
                             )
                     st.caption(meta_info)
 
-                    st.session_state.messages.append({
-                        "role": "assistant",
-                        "content": response_text,
-                        "sources": sources,
-                        "meta_info": meta_info,
-                    })
+                    st.session_state.messages.append(
+                        {
+                            "role": "assistant",
+                            "content": response_text,
+                            "sources": sources,
+                            "meta_info": meta_info,
+                        }
+                    )
 
                     logger.info("تمت معالجة السؤال بنجاح في %s ثانية", processing_time)
 
