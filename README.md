@@ -280,8 +280,8 @@ rag_labor_law_project/
    - اضغط **"New app"**
    - اختر المستودع: `rag_labor_law_project`
    - الفرع: `main`
-   - **مسار الملف الرئيسي:** `rag_project/server.py`
-   - **أمر التشغيل:** `uvicorn server:app --host 0.0.0.0 --port $PORT`
+   - **مسار الملف الرئيسي:** `rag_project/streamlit_app.py`
+   - **أمر التشغيل:** `streamlit run rag_project/streamlit_app.py`
    - اضغط **"Deploy"**
 
 3. **أضف مفتاح API**
@@ -312,14 +312,9 @@ rag_labor_law_project/
 ### التشغيل المحلي:
 
 ```bash
-# تشغيل الخادم
-python -m uvicorn server:app --host 0.0.0.0 --port 8000
-
-# أو
-python app.py
+# تشغيل التطبيق محلياً
+streamlit run rag_project/streamlit_app.py
 ```
-
-ثم افتح المتصفح على: `http://localhost:8000`
 
 ---
 

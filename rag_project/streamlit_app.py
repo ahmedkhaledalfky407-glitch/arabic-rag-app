@@ -352,7 +352,6 @@ if prompt:
                         contexts,
                         memory,
                         api_key=st.session_state.user_api_key,
-                        model=st.session_state.selected_model,
                     )
                     response_text = result.get("answer", "تعذر توليد إجابة.")
                     sources = result.get("sources", [])
