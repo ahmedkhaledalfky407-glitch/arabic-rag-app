@@ -30,8 +30,8 @@ st.markdown(
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
 
     :root {
-        --bg-primary: #070b14;
-        --bg-secondary: #0f172a;
+        --bg-primary: #0b1120;
+        --bg-secondary: #111827;
         --bg-card: #1e293b;
         --bg-card-hover: #273549;
         --border: #334155;
@@ -40,50 +40,93 @@ st.markdown(
         --text-secondary: #94a3b8;
         --text-muted: #64748b;
         --accent: #3b82f6;
+        --accent-hover: #2563eb;
         --accent-glow: rgba(59, 130, 246, 0.25);
+        --purple: #8b5cf6;
+        --pink: #ec4899;
         --success: #22c55e;
         --warning: #ef4444;
         --warning-bg: rgba(239, 68, 68, 0.12);
         --info-bg: rgba(59, 130, 246, 0.12);
+        --radius: 12px;
+        --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     }
 
     * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
 
-    body {
+    html, body {
         font-family: 'Cairo', sans-serif !important;
         background: var(--bg-primary) !important;
         color: var(--text-primary) !important;
+        min-height: 100vh !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
 
     .stApp {
         background: var(--bg-primary) !important;
+        direction: rtl !important;
+    }
+
+    .stMain {
+        background: transparent !important;
+    }
+
+    .block-container {
+        direction: rtl !important;
+        text-align: right !important;
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
     }
 
     [data-testid="stSidebar"] {
         display: none !important;
     }
 
+    #MainMenu {visibility: hidden !important;}
+    footer {visibility: hidden !important;}
+    header {visibility: hidden !important;}
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Cairo', sans-serif !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    p, span, div, label, input, select, button {
+        font-family: 'Cairo', sans-serif !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Buttons */
     .stButton > button {
         font-family: 'Cairo', sans-serif !important;
         font-weight: 600 !important;
-        border-radius: 12px !important;
+        border-radius: var(--radius) !important;
         border: none !important;
         padding: 12px 16px !important;
-        transition: all 0.25s !important;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        cursor: pointer !important;
+        width: 100% !important;
+        direction: rtl !important;
+        text-align: center !important;
     }
 
     .stButton > button[kind="primary"] {
         background: linear-gradient(135deg, #3b82f6, #7c3aed) !important;
         color: white !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25) !important;
     }
 
     .stButton > button[kind="primary"]:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4) !important;
     }
 
     .stButton > button[kind="secondary"] {
@@ -92,69 +135,306 @@ st.markdown(
         border: 1px solid var(--border) !important;
     }
 
+    .stButton > button[kind="secondary"]:hover {
+        background: var(--bg-card-hover) !important;
+        border-color: var(--border-light) !important;
+    }
+
+    /* Inputs */
     .stTextInput > div > div > input,
     .stSelectbox > div > div > select,
     .stSlider > div > div > div > input[type="range"] {
         font-family: 'Cairo', sans-serif !important;
         background: var(--bg-card) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 12px !important;
+        border-radius: var(--radius) !important;
         color: var(--text-primary) !important;
+        padding: 10px 14px !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
 
-    .card {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 18px;
-        margin-bottom: 16px;
+    .stTextInput > div > div > input:focus,
+    .stSelectbox > div > div > select:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px var(--accent-glow) !important;
     }
 
-    .gradient-text {
-        background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
-    }
-
+    /* File uploader */
     .stFileUploader {
         background: var(--bg-card) !important;
         border: 1px solid var(--border) !important;
-        border-radius: 12px !important;
+        border-radius: var(--radius) !important;
+        padding: 10px !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
 
+    .stFileUploader > div {
+        color: var(--text-secondary) !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Metrics */
     [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #1e293b, #0f172a);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 16px 10px;
+        background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 14px !important;
+        padding: 16px 10px !important;
+        text-align: center !important;
+        direction: rtl !important;
     }
 
     [data-testid="stMetric"] > div > div > div > div {
         color: #60a5fa !important;
-        font-weight: 800;
+        font-weight: 800 !important;
+        font-size: 1.5rem !important;
     }
 
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-
-    .chat-message {
-        padding: 16px 20px;
-        border-radius: 16px;
-        margin-bottom: 12px;
-        max-width: 85%;
-        line-height: 1.7;
+    [data-testid="stMetric"] > div > div > div > label {
+        color: var(--text-secondary) !important;
+        font-size: 0.85rem !important;
     }
 
-    .chat-user {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
-        border: 1px solid rgba(59, 130, 246, 0.3);
+    /* Chat messages */
+    .stChatMessage {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        direction: rtl !important;
+        text-align: right !important;
     }
 
-    .chat-assistant {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid var(--border);
+    .stChatMessage > div {
+        background: transparent !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .stChatMessageContent {
+        background: transparent !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Status badges */
+    .status-badge {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        padding: 8px 16px !important;
+        border-radius: 20px !important;
+        font-size: 0.85rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 12px !important;
+        direction: rtl !important;
+    }
+
+    .status-ready {
+        background: rgba(34, 197, 94, 0.15) !important;
+        color: #4ade80 !important;
+        border: 1px solid rgba(34, 197, 94, 0.3) !important;
+    }
+
+    .status-not-ready {
+        background: rgba(239, 68, 68, 0.15) !important;
+        color: #f87171 !important;
+        border: 1px solid rgba(239, 68, 68, 0.3) !important;
+    }
+
+    /* Control panel */
+    .control-panel {
+        background: rgba(30, 41, 59, 0.6) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 18px !important;
+        margin-bottom: 20px !important;
+        backdrop-filter: blur(10px) !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .control-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+        gap: 12px !important;
+        direction: rtl !important;
+    }
+
+    /* Chat area */
+    .chat-wrapper {
+        background: rgba(15, 23, 42, 0.5) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 20px !important;
+        padding: 20px !important;
+        min-height: 400px !important;
+        max-height: 600px !important;
+        overflow-y: auto !important;
+        margin-bottom: 20px !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    /* Message bubbles */
+    .message-user {
+        background: linear-gradient(135deg, #3b82f6, #6366f1) !important;
+        color: white !important;
+        padding: 14px 18px !important;
+        border-radius: 18px 18px 4px 18px !important;
+        margin-bottom: 12px !important;
+        max-width: 75% !important;
+        margin-right: auto !important;
+        margin-left: 0 !important;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.25) !important;
+        line-height: 1.6 !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .message-assistant {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border) !important;
+        color: var(--text-primary) !important;
+        padding: 14px 18px !important;
+        border-radius: 18px 18px 18px 4px !important;
+        margin-bottom: 12px !important;
+        max-width: 75% !important;
+        margin-left: auto !important;
+        margin-right: 0 !important;
+        line-height: 1.6 !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .message-meta {
+        font-size: 0.75rem !important;
+        color: var(--text-muted) !important;
+        margin-top: 6px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        direction: rtl !important;
+    }
+
+    /* Input area */
+    .input-wrapper {
+        position: relative !important;
+        display: flex !important;
+        align-items: center !important;
+        direction: rtl !important;
+    }
+
+    .chat-input {
+        width: 100% !important;
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 16px 60px 16px 20px !important;
+        color: var(--text-primary) !important;
+        font-family: 'Cairo', sans-serif !important;
+        font-size: 1rem !important;
+        outline: none !important;
+        transition: all 0.25s !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .chat-input:focus {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 4px var(--accent-glow) !important;
+    }
+
+    .chat-input::placeholder {
+        color: var(--text-muted) !important;
+    }
+
+    .send-button {
+        position: absolute !important;
+        left: 10px !important;
+        width: 42px !important;
+        height: 42px !important;
+        background: linear-gradient(135deg, #3b82f6, #7c3aed) !important;
+        border: none !important;
+        border-radius: 12px !important;
+        color: white !important;
+        font-size: 1.1rem !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.25s !important;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+    }
+
+    .send-button:hover {
+        transform: scale(1.08) !important;
+        box-shadow: 0 6px 18px rgba(59, 130, 246, 0.45) !important;
+    }
+
+    .send-button:active {
+        transform: scale(0.96) !important;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px !important;
+        height: 6px !important;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent !important;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #334155 !important;
+        border-radius: 10px !important;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #475569 !important;
+    }
+
+    /* Card styling */
+    .custom-card {
+        background: rgba(30, 41, 59, 0.8) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: 16px !important;
+        padding: 20px !important;
+        margin-bottom: 16px !important;
+        backdrop-filter: blur(10px) !important;
+        direction: rtl !important;
+        text-align: right !important;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, #60a5fa, #a78bfa, #f472b6) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        font-weight: 800 !important;
+        direction: rtl !important;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .control-grid {
+            grid-template-columns: 1fr !important;
+        }
+        
+        .chat-wrapper {
+            min-height: 300px !important;
+            max-height: 400px !important;
+        }
+        
+        .message-user,
+        .message-assistant {
+            max-width: 90% !important;
+        }
+        
+        .stButton > button {
+            font-size: 0.9rem !important;
+            padding: 10px 12px !important;
+        }
     }
     </style>
 """,
@@ -198,9 +478,8 @@ if "messages" not in st.session_state:
 if "selected_model" not in st.session_state:
     st.session_state.selected_model = os.getenv("OPENROUTER_MODEL", "openrouter/free")
 if "db_built" not in st.session_state:
-    st.session_state.db_built = bool(
-        Path("chroma_db").exists() and any(Path("chroma_db").iterdir())
-    )
+    base_dir = Path(__file__).resolve().parent
+    st.session_state.db_built = bool((base_dir / "chroma_db").exists() and any((base_dir / "chroma_db").iterdir()))
 if "user_api_key" not in st.session_state:
     try:
         from config import get_openrouter_api_key
@@ -212,8 +491,9 @@ if "user_api_key" not in st.session_state:
 
 @st.cache_data(ttl=30)
 def get_documents_list() -> list[Path]:
-    documents_dir = Path("documents")
-    data_dir = Path("data")
+    base_dir = Path(__file__).resolve().parent
+    documents_dir = base_dir / "documents"
+    data_dir = base_dir / "data"
     paths = {p for p in documents_dir.glob("*.txt")}
     paths.update(p for p in data_dir.glob("*.txt"))
     return sorted(paths)
@@ -222,8 +502,9 @@ def get_documents_list() -> list[Path]:
 def get_stats() -> tuple[int, int]:
     doc_count = 0
     chunk_count = 0
-    data_file_documents = Path("data") / "01_documents.json"
-    data_file_chunks = Path("data") / "03_chunks.json"
+    base_dir = Path(__file__).resolve().parent
+    data_file_documents = base_dir / "data" / "01_documents.json"
+    data_file_chunks = base_dir / "data" / "03_chunks.json"
     if data_file_documents.exists():
         try:
             import json
@@ -240,7 +521,9 @@ def get_stats() -> tuple[int, int]:
 
 
 def rebuild_knowledge_base() -> int:
-    documents = document_module.load_documents_from_directory(Path("documents"))
+    base_dir = Path(__file__).resolve().parent
+    documents_dir = base_dir / "documents"
+    documents = document_module.load_documents_from_directory(documents_dir)
     if not documents:
         raise ValueError("لم يتم العثور على مستندات نصية صالحة للمعالجة.")
     document_module.save_documents(documents)
@@ -256,12 +539,12 @@ def rebuild_knowledge_base() -> int:
 # Header
 st.markdown(
     """
-    <div style="text-align:center; margin-bottom:28px;">
-        <h1 style="font-size:2.4rem; font-weight:800; margin-bottom:10px;">
+    <div style="text-align:center; margin-bottom:28px; direction:rtl;">
+        <h1 style="font-size:2.4rem; font-weight:800; margin-bottom:10px; direction:rtl; text-align:center;">
             <span class="gradient-text">مساعد RAG عربي ذكي</span>
             <span style="font-size:2rem;">🧠</span>
         </h1>
-        <p style="color:#94a3b8; font-size:1.05rem; max-width:600px; margin:0 auto; line-height:1.6;">
+        <p style="color:#94a3b8; font-size:1.05rem; max-width:600px; margin:0 auto; line-height:1.6; direction:rtl; text-align:center;">
             اسأل سؤالك عن المستندات المخزنة وستحصل على إجابة دقيقة من قاعدة المعرفة مع ذكر المصادر
         </p>
     </div>
@@ -273,7 +556,7 @@ st.markdown(
 if not st.session_state.db_built:
     st.markdown(
         """
-        <div class="card" style="border: 1px solid #3b82f6; background: linear-gradient(135deg, rgba(30, 58, 95, 0.7), rgba(30, 41, 59, 0.7));">
+        <div class="custom-card" style="border: 1px solid #3b82f6; background: linear-gradient(135deg, rgba(30, 58, 95, 0.7), rgba(30, 41, 59, 0.7)); direction:rtl; text-align:right;">
             <div style="display:flex; align-items:flex-start; gap:14px;">
                 <span style="font-size:1.4rem;">ℹ️</span>
                 <div>
@@ -302,28 +585,28 @@ st.divider()
 
 # ── 7. سجل المحادثة ──────────────────────────────────────────────────────────
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-        if message.get("sources"):
-            st.markdown("### 📎 المصادر المسترجعة")
-            for src in message["sources"]:
-                st.markdown(
-                    f"- 📄 `{src.get('filename', '')}` | "
-                    f"Chunk: `{src.get('chunk_id', '')}` | "
-                    f"التشابه: `{src.get('similarity', 0.0):.2f}`"
-                )
-        if message.get("meta_info"):
-            st.caption(message["meta_info"])
+chat_container = st.container()
+with chat_container:
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+            if message.get("sources"):
+                st.markdown("### 📎 المصادر المسترجعة")
+                for src in message["sources"]:
+                    st.markdown(
+                        f"- 📄 `{src.get('filename', '')}` | "
+                        f"Chunk: `{src.get('chunk_id', '')}` | "
+                        f"التشابه: `{src.get('similarity', 0.0):.2f}`"
+                    )
+            if message.get("meta_info"):
+                st.caption(message["meta_info"])
 
 # ── 8. إدخال السؤال ──────────────────────────────────────────────────────────
 
 prompt = st.chat_input("اكتب سؤالك هنا...")
 
 if prompt:
-    if not st.session_state.db_built:
-        st.error("❌ لا يمكنك طرح الأسئلة قبل بناء قاعدة المعرفة. اضغط على 'إعادة بناء قاعدة المعرفة' أولاً.")
-    elif not st.session_state.user_api_key:
+    if not st.session_state.user_api_key:
         st.error("❌ يرجى توفير مفتاح OpenRouter API أولاً.")
     else:
         st.session_state.messages.append({"role": "user", "content": prompt})
@@ -385,62 +668,94 @@ if prompt:
                 except Exception as exc:
                     st.error(f"⚠️ حدث خطأ أثناء معالجة السؤال: {exc}")
 
-# ── 9. شريط التحكم السفلي ────────────────────────────────────────────────────
+# ── 9. لوحة التحكم ────────────────────────────────────────────────────────────
 
 st.divider()
 
 with st.container():
+    st.markdown(
+        """
+        <div class="control-panel">
+            <div class="control-grid">
+                <div>
+                    <label style="display:block; font-size:0.85rem; color:#94a3b8; margin-bottom:8px; direction:rtl; text-align:right;">
+                        🔑 مفتاح OpenRouter API
+                    </label>
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.85rem; color:#94a3b8; margin-bottom:8px; direction:rtl; text-align:right;">
+                        📁 رفع ملفات TXT
+                    </label>
+                </div>
+                <div>
+                    <label style="display:block; font-size:0.85rem; color:#94a3b8; margin-bottom:8px; direction:rtl; text-align:right;">
+                        ⚙️ الإعدادات
+                    </label>
+                </div>
+            </div>
+        </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
     col1, col2, col3 = st.columns([2, 2, 3])
 
     with col1:
         active_api_key = st.session_state.user_api_key or ""
         input_key = st.text_input(
-            "🔑 مفتاح OpenRouter API",
+            "🔑 مفتاح API",
             value=active_api_key,
             type="password",
-            label_visibility="visible",
+            label_visibility="collapsed",
         )
         if input_key and input_key.strip() != active_api_key:
             st.session_state.user_api_key = input_key.strip()
             os.environ["OPENROUTER_API_KEY"] = input_key.strip()
-            st.success("تم تحديث مفتاح API")
+            st.success("✅ تم تحديث مفتاح API")
 
     with col2:
-        uploaded = st.file_uploader("📁 رفع ملفات TXT", type=["txt"], accept_multiple_files=True, label_visibility="visible")
-        if st.button("💾 حفظ", use_container_width=True):
+        uploaded = st.file_uploader(
+            "📁 رفع ملفات TXT",
+            type=["txt"],
+            accept_multiple_files=True,
+            label_visibility="collapsed",
+        )
+        if st.button("💾 حفظ الملفات", use_container_width=True, key="save_files"):
             if uploaded:
-                Path("documents").mkdir(parents=True, exist_ok=True)
+                base_dir = Path(__file__).resolve().parent
+                documents_dir = base_dir / "documents"
+                documents_dir.mkdir(parents=True, exist_ok=True)
                 saved = []
                 for f in uploaded:
-                    target = Path("documents") / f.name
+                    target = documents_dir / f.name
                     target.write_bytes(f.getvalue())
                     saved.append(f.name)
-                st.success(f"تم حفظ {len(saved)} ملفًا")
+                st.success(f"✅ تم حفظ {len(saved)} ملفًا")
             else:
-                st.info("اختر ملفًا لرفعه")
+                st.info("📌 اختر ملفًا لرفعه")
 
     with col3:
         c1, c2, c3 = st.columns(3)
         with c1:
-            if st.button("🔄 إعادة بناء", use_container_width=True, type="primary"):
+            if st.button("🔄 إعادة بناء", use_container_width=True, type="primary", key="rebuild"):
                 try:
                     with st.spinner("جارٍ البناء..."):
                         count = rebuild_knowledge_base()
                         st.session_state.db_built = True
-                    st.success(f"تم البناء: {count} مستند")
+                    st.success(f"✅ تم البناء: {count} مستند")
                 except Exception as exc:
-                    st.error(f"فشل البناء: {exc}")
+                    st.error(f"❌ فشل البناء: {exc}")
         with c2:
-            if st.button("🗑️ مسح المحادثة", use_container_width=True):
+            if st.button("🗑️ مسح المحادثة", use_container_width=True, key="clear_chat"):
                 st.session_state.memory = None
                 st.session_state.messages.clear()
-                st.success("تم مسح المحادثة")
+                st.success("✅ تم مسح المحادثة")
         with c3:
             st.session_state.selected_model = st.selectbox(
                 "اختر النموذج",
                 ["openrouter/free", "openai/gpt-4o-mini", "meta-llama/llama-3.3-70b-instruct", "deepseek/deepseek-chat", "google/gemini-2.5-flash"],
                 index=0,
-                label_visibility="visible",
+                label_visibility="collapsed",
             )
             os.environ["OPENROUTER_MODEL"] = st.session_state.selected_model
 
@@ -455,6 +770,6 @@ with col2:
     st.metric("📊 القطع النصية (Chunks)", cc)
 
 if st.session_state.db_built:
-    st.markdown('<span style="background:rgba(34,197,94,0.15); color:#4ade80; border:1px solid rgba(34,197,94,0.3); padding:6px 14px; border-radius:20px; font-size:0.85rem; font-weight:600;">🟢 قاعدة البيانات جاهزة</span>', unsafe_allow_html=True)
+    st.markdown('<span class="status-badge status-ready">🟢 قاعدة البيانات جاهزة</span>', unsafe_allow_html=True)
 else:
-    st.markdown('<span style="background:rgba(239,68,68,0.15); color:#f87171; border:1px solid rgba(239,68,68,0.3); padding:6px 14px; border-radius:20px; font-size:0.85rem; font-weight:600;">🔴 قاعدة البيانات غير مبنية</span>', unsafe_allow_html=True)
+    st.markdown('<span class="status-badge status-not-ready">🔴 قاعدة البيانات غير مبنية</span>', unsafe_allow_html=True)
